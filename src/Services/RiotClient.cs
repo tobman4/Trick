@@ -13,28 +13,25 @@ class RiotClient(
 	private readonly HttpClient _client = client;
 	
 
-	public async Task<IEnumerable<string>> GetGameIDsAsync(string puuid) =>
-		(await _client.GetFromJsonAsync<IEnumerable<string>>($"/lol/match/v5/matches/by-puuid/{puuid}/ids")) ?? new string[0];
+	// public async Task<IEnumerable<string>> GetGameIDsAsync(string puuid) =>
+	// 	(await _client.GetFromJsonAsync<IEnumerable<string>>($"/lol/match/v5/matches/by-puuid/{puuid}/ids")) ?? new string[0];
 
   public async Task<IEnumerable<JsonObject>> GetTopMasteryAsync(string puuid) =>
     (await _client.GetFromJsonAsync<IEnumerable<JsonObject>>($"https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}/top")) ?? new JsonObject[0];
 
 
-  public async Task<Account> GetAccountAsync(string puuid) {
-    var account = await _client.GetFromJsonAsync<Account>($"/riot/account/v1/accounts/by-puuid/{puuid}");
-    if(account is null)
-      throw new Exception("Account not founc");
+  public async Task<Account> GetAccountAsync(string puuid) =>
+    (await _client.GetFromJsonAsync<Account>($"/riot/account/v1/accounts/by-puuid/{puuid}")) ?? throw new Exception("Cant get account info");
 
-    return account;
+  public async Task<Account> GetAccountAsync(string gameName, string tag) =>
+    (await _client.GetFromJsonAsync<Account>($"/riot/account/v1/accounts/by-riot-id/{gameName}/{tag}")) ?? throw new Exception("Cant get account info");
 
-  }
 
-  public async Task<Account> GetAccountAsync(string gameName, string tag) {
-    var account = await _client.GetFromJsonAsync<Account>($"/riot/account/v1/accounts/by-riot-id/{gameName}/{tag}");
-    if(account is null)
-      throw new Exception("Account not founc");
 
-    return account;
+  public async Task<IEnumerable<string>> GetGameIDsAsync(string puuid, int count = 10) => 
+    (await _client.GetFromJsonAsync<IEnumerable<string>>($"/lol/match/v5/matches/by-puuid/{puuid}/ids?count={count}")) ?? new String[0];
 
-  }
+  public async Task<JsonObject> GetGameAsync(string gameID) =>
+    (await _client.GetFromJsonAsync<JsonObject>($"/lol/match/v5/matches/{gameID}")) ?? throw new Exception($"Cant get game: {gameID}");
+
 }
