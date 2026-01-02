@@ -1,7 +1,8 @@
 using Prometheus;
 using Trick.Interfaces;
+using Trick.Services;
 
-namespace Trick.Services;
+namespace Trick.Exportets;
 
 class MasteryExporter(
   string puuid,
