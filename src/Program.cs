@@ -43,6 +43,26 @@ builder.Services.AddSingleton<IAsyncExporter, MasteryExporter>(e =>
   )
 );
 
+builder.Services.AddSingleton<IAsyncExporter, GameExporter>(e => 
+  new GameExporter(
+    "gWuTiRR8VdReLlRPHbGQXX3gVxoGNYW_3Rs7L10KBuiZb0jCx4AvkDRdSCvD_Czp8HLnFbBDr3mYnA",
+    e.GetRequiredService<ILogger<GameExporter>>(),
+    e.GetRequiredService<RiotClient>()
+  )
+);
+
+builder.Services.AddSingleton<IAsyncExporter, GameExporter>(e => 
+  new GameExporter(
+    "I5SSQpHLl88Wne8eNA8gMco97juJ7E1kqIDycnyv1CZxn9x_cdDweTd6Mb8ozjN6OMX3ZBlDbh3s1Q",
+    e.GetRequiredService<ILogger<GameExporter>>(),
+    e.GetRequiredService<RiotClient>()
+  )
+);
+
+
+
+
+
 var app = builder.Build();
 
 await app.RunAsync();
