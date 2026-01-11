@@ -11,6 +11,7 @@ static class Extensions {
 
   public static void AddExporters(this HostApplicationBuilder builder) {
     builder.Services.AddHostedService<ExportController>();
+    builder.Services.AddScoped<IAsyncExporter, GameExporter>();
 
     var players = builder.Configuration.GetSection("Players")
       .Get<IEnumerable<PlayerExportOptions>>() ?? new PlayerExportOptions[0];
