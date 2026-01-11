@@ -89,11 +89,11 @@ class GameExporter(
       ?? throw new Exception("Cant get players");
 
     foreach(var player in players) {
-      var puuid = player["puuid"]?.GetValue<string>();
+      var puuid = player?["puuid"]?.GetValue<string>();
       if(!playerIDs.Contains(puuid))
           continue;
 
-      await ExportPlayer(player.AsObject());
+      await ExportPlayer(player?.AsObject()!);
     }
 
 
