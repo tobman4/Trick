@@ -19,6 +19,9 @@ class RiotClient(
   public async Task<IEnumerable<JsonObject>> GetTopMasteryAsync(string puuid) =>
     (await _client.GetFromJsonAsync<IEnumerable<JsonObject>>($"https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}/top")) ?? new JsonObject[0];
 
+  public async Task<IEnumerable<JsonObject>> GetMasteryAsync(string puuid) =>
+    (await _client.GetFromJsonAsync<IEnumerable<JsonObject>>($"https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/{puuid}")) ?? new JsonObject[0];
+
 
   public async Task<Account> GetAccountAsync(string puuid) =>
     (await _client.GetFromJsonAsync<Account>($"/riot/account/v1/accounts/by-puuid/{puuid}")) ?? throw new Exception("Cant get account info");

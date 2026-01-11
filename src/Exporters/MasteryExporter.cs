@@ -11,6 +11,9 @@ class MasteryExporter(
   DataDragon dd
 ) : IAsyncExporter {
 
+  private static readonly Gauge _totalLevel = Metrics.CreateGauge("player_total_level", "", "riotID");
+  private static readonly Gauge _totalScore = Metrics.CreateGauge("player_total_score", "", "riotID");
+
 	private static readonly Gauge _levelGauge = Metrics.CreateGauge("champion_level", "Mastery level on a champion", "riotID", "champion");
 	private static readonly Gauge _scoreGauge = Metrics.CreateGauge("champion_score", "Mastery score on a champion", "riotID", "champion");
 
@@ -22,7 +25,10 @@ class MasteryExporter(
 
   public async Task ExportAsync() {
     var account = _riot.GetAccountAsync(_puuid);
-    var champs = await _riot.GetTopMasteryAsync(_puuid);
+    var champs = await _riot.GetMasteryAsync(_puuid);
+
+    int totalLevel = 0;
+    uint totalScore = 0;
 
     foreach(var champ in champs) {
       var name = await _dd.GetNameFromKeyAsync(champ["championId"]!.GetValue<int>());
@@ -33,7 +39,12 @@ class MasteryExporter(
 
       _levelGauge.WithLabels((await account).RiotID, name).Set(level);
       _scoreGauge.WithLabels((await account).RiotID, name).Set(score);
-      
+
+      totalLevel += level;
+      totalScore += (uint)score;
     }
+
+    _totalLevel.WithLabels((await account).RiotID).Set(totalScore);
+    _totalScore.WithLabels((await account).RiotID).Set(totalScore);
   }
 }
