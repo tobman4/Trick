@@ -4,7 +4,7 @@ WORKDIR /src
 COPY ./src/ /src/
 RUN dotnet build -c Release -o /app /src
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0
+FROM mcr.microsoft.com/dotnet/aspnet:10.0
 
 EXPOSE 8088
 
