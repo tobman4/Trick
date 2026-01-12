@@ -26,7 +26,10 @@ class GameExporter(
   private readonly Counter _lostGamesCounter = Metrics.CreateCounter("games_lost", "Total games lost", "riotID");
   private readonly Counter _remageGamesCounter = Metrics.CreateCounter("games_remake", "Total games remade", "riotID");
   
-  
+  private static readonly Histogram _gameLength = Metrics.CreateHistogram("game_length", "Game length in seconds", new string[] { "mapId", "gameMode" }, new HistogramConfiguration {
+    Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 90)
+  });
+
 
   public async Task ExportAsync() {
     // 0. Prep
@@ -84,7 +87,16 @@ class GameExporter(
   private async Task ExportGame(string gameID, IEnumerable<string> playerIDs) {
     _logger.LogInformation("beep boop");
     var gameData = await _riot.GetGameAsync(gameID);
+    
+    var mapID = gameData["info"]!["mapId"]!.GetValue<int>();
+    var gameMode = gameData["info"]!["gameMode"]!.GetValue<string>();
+    var gameLength = gameData["info"]!["gameDuration"]!.GetValue<int>();
+      
+    _gameLength.WithLabels(mapID.ToString(),gameMode).Observe(gameLength);
 
+    ////////////
+    // Player //
+    ////////////
     var players = gameData?["info"]?["participants"]?.AsArray()
       ?? throw new Exception("Cant get players");
 
