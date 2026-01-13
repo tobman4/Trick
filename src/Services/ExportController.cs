@@ -1,4 +1,5 @@
 using Trick.Interfaces;
+using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -30,7 +31,11 @@ class ExportController(
 
   private async Task ExportAsync(IAsyncExporter exporter) {
     try {
+      var st = Stopwatch.StartNew();
       await exporter.ExportAsync();
+      st.Stop();
+
+      _logger.LogDebug("Export({time}ms) {name}", st.ElapsedMilliseconds, exporter.GetType().Name);
     } catch(Exception err) {
       _logger.LogError(err, $"Failed to export {exporter.GetType().Name}");
     }
