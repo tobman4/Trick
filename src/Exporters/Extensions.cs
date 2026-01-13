@@ -14,19 +14,17 @@ static class Extensions {
     builder.Services.AddScoped<IAsyncExporter, GameExporter>();
 
     var players = builder.Configuration.GetSection("Players")
-      .Get<IEnumerable<PlayerExportOptions>>() ?? new PlayerExportOptions[0];
+      .Get<IEnumerable<string>>() ?? new string[0];
 
     foreach(var player in players) {
-      Console.WriteLine(player.PUUID);
-      if(player.ExportMastery)
-        builder.Services.AddSingleton<IAsyncExporter, MasteryExporter>(e => 
-          new MasteryExporter(
-            player.PUUID,
-            e.GetRequiredService<ILogger<MasteryExporter>>(),
-            e.GetRequiredService<RiotClient>(),
-            e.GetRequiredService<DataDragon>()
-          )
-        );
+      builder.Services.AddSingleton<IAsyncExporter, MasteryExporter>(e => 
+        new MasteryExporter(
+          player,
+          e.GetRequiredService<ILogger<MasteryExporter>>(),
+          e.GetRequiredService<RiotClient>(),
+          e.GetRequiredService<DataDragon>()
+        )
+      );
 
 
 
