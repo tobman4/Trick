@@ -2,6 +2,7 @@ using Prometheus;
 using Trick.Services;
 using System.Text.Json.Nodes;
 using Trick.Options;
+using Trick.LOL;
 using Microsoft.Extensions.Configuration;
 
 namespace Trick.Exportets;
@@ -30,15 +31,30 @@ class GameExporter(
     Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 90)
   });
 
+  private async Task<IEnumerable<Account>> GetTargetAccounts() {
+    var o = new List<Account>();
+    var playerNames = _conf.GetSection("Players").Get<IEnumerable<string>>() ??
+      throw new Exception();
+
+
+
+    foreach(var riotID in playerNames) {
+      var split = riotID.Split("#");
+      if(split.Count() != 2)
+        throw new Exception($"Got bad riotID \"{riotID}\"");
+
+      var acc = await _riot.GetAccountAsync(split[0], split[1]);
+      o.Add(acc);
+    }
+    
+    return o.ToArray();
+  }
 
   public async Task ExportAsync() {
     // 0. Prep
     // TODO: Make not shit
-    var playersOps = _conf
-      .GetSection("Players")
-      .Get<IEnumerable<PlayerExportOptions>>() ?? new PlayerExportOptions[0];
-
-    var playerIDs = playersOps.Select(e => e.PUUID);
+    var targets = await GetTargetAccounts();
+    var playerIDs = targets.Select(e => e.PUUID);
 
     // 1. Look for new games
     foreach(var puuid in playerIDs)

@@ -1,11 +1,11 @@
 using Prometheus;
-using Trick.Interfaces;
 using Trick.Services;
+using Trick.LOL;
 
 namespace Trick.Exportets;
 
 class MasteryExporter(
-  string puuid,
+  string riotID,
   ILogger<MasteryExporter> logger,
   RiotClient riot,
   DataDragon dd
@@ -18,14 +18,23 @@ class MasteryExporter(
 	private static readonly Gauge _scoreGauge = Metrics.CreateGauge("champion_score", "Mastery score on a champion", "riotID", "champion");
 
   private readonly ILogger _logger = logger;
-	private readonly string _puuid = puuid;
+  [Obsolete]
+	private readonly string _puuid = "";
+  private readonly string _riotID = riotID;
   private readonly RiotClient _riot = riot;
   private readonly DataDragon _dd = dd;
 
+  private async Task<Account> GetAccountAsync() {
+    var split = _riotID.Split("#");
+    if(split.Count() != 2)
+      throw new Exception($"Got bad riot id \"{_riotID}\"");
+
+    return await _riot.GetAccountAsync(split[0], split[1]);
+  }
 
   public async Task ExportAsync() {
-    var account = _riot.GetAccountAsync(_puuid);
-    var champs = await _riot.GetMasteryAsync(_puuid);
+    var account = await GetAccountAsync();
+    var champs = await _riot.GetMasteryAsync(account.PUUID);
 
     int totalLevel = 0;
     uint totalScore = 0;
@@ -37,14 +46,14 @@ class MasteryExporter(
       var score = champ["championPoints"]!.GetValue<int>();
 
 
-      _levelGauge.WithLabels((await account).RiotID, name).Set(level);
-      _scoreGauge.WithLabels((await account).RiotID, name).Set(score);
+      _levelGauge.WithLabels(account.RiotID, name).Set(level);
+      _scoreGauge.WithLabels(account.RiotID, name).Set(score);
 
       totalLevel += level;
       totalScore += (uint)score;
     }
 
-    _totalLevel.WithLabels((await account).RiotID).Set(totalScore);
-    _totalScore.WithLabels((await account).RiotID).Set(totalScore);
+    _totalLevel.WithLabels(account.RiotID).Set(totalScore);
+    _totalScore.WithLabels(account.RiotID).Set(totalScore);
   }
 }
