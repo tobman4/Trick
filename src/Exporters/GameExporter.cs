@@ -17,7 +17,6 @@ class GameExporter(
   private static readonly List<string> EXPORT_LOG = new();
   private static readonly List<string> EXPORT_QUEUE = new();
 
-
   private readonly IConfiguration _conf = conf;
   private readonly ILogger _logger = logger;
   private readonly RiotClient _riot = riot;
@@ -144,6 +143,4 @@ class GameExporter(
     _visionScore.WithLabels(acc.RiotID).Observe(vision);
 
   }
-
-
 }
