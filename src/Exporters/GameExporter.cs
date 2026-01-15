@@ -31,6 +31,10 @@ class GameExporter(
     Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 45)
   });
 
+  private static readonly Histogram _visionScore = Metrics.CreateHistogram("player_vision", "Player vision score", new string[] {"riotId"}, new HistogramConfiguration {
+    Buckets = Histogram.LinearBuckets(start: 0, width: 10, count: 15)
+  });
+
   private async Task<IEnumerable<Account>> GetTargetAccounts() {
     var o = new List<Account>();
     var playerNames = _conf.GetSection("Players").Get<IEnumerable<string>>() ??
@@ -136,7 +140,8 @@ class GameExporter(
       _lostGamesCounter.WithLabels(acc.RiotID).Inc();
     _totalGamesCounter.WithLabels(acc.RiotID).Inc();
 
-    
+    var vision = playerData["visionScore"]?.GetValue<int>() ?? 0;
+    _visionScore.WithLabels(acc.RiotID).Observe(vision);
 
   }
 
