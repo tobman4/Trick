@@ -13,7 +13,7 @@ class GameExporter(
   RiotClient riot
 ) : IAsyncExporter {
 
-  private static readonly int LOG_SIZE = 10;
+  private static readonly int LOG_SIZE = 20;
   private static readonly List<string> EXPORT_LOG = new();
   private static readonly List<string> EXPORT_QUEUE = new();
 
@@ -28,7 +28,7 @@ class GameExporter(
   private readonly Counter _remageGamesCounter = Metrics.CreateCounter("games_remake", "Total games remade", "riotID");
   
   private static readonly Histogram _gameLength = Metrics.CreateHistogram("game_length", "Game length in seconds", new string[] { "mapId", "gameMode" }, new HistogramConfiguration {
-    Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 90)
+    Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 45)
   });
 
   private async Task<IEnumerable<Account>> GetTargetAccounts() {
@@ -101,7 +101,6 @@ class GameExporter(
   }
 
   private async Task ExportGame(string gameID, IEnumerable<string> playerIDs) {
-    _logger.LogInformation("beep boop");
     var gameData = await _riot.GetGameAsync(gameID);
     
     var mapID = gameData["info"]!["mapId"]!.GetValue<int>();
@@ -123,10 +122,6 @@ class GameExporter(
 
       await ExportPlayer(player?.AsObject()!);
     }
-
-
-    // Doing work
-    await Task.Delay(1);
   }
 
   private async Task ExportPlayer(JsonObject playerData) {
