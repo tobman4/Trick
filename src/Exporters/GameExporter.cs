@@ -144,7 +144,7 @@ class GameExporter(
       if(!playerIDs.Contains(puuid))
           continue;
 
-      // await ExportPlayer(player?.AsObject()!);
+      await ExportPlayer(player?.AsObject()!); // TODO: Dont use this shit
       Account acc = await _riot.GetAccountAsync(puuid!);
       Task.WaitAll(playerExporters.Select(e => e.ExportAsync(acc, gameData, player!.AsObject())));
     }
