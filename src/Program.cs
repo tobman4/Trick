@@ -1,6 +1,7 @@
 ﻿global using Microsoft.Extensions.Logging;
 global using Trick.Interfaces;
 
+using Trick;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Trick.Services;
@@ -8,6 +9,7 @@ using Trick.Interfaces;
 using Trick.Exportets;
 
 var builder = Host.CreateApplicationBuilder();
+builder.Logging.Setup();
 builder.Services.AddHostedService<MetricHost>();
 builder.AddExporters();
 
