@@ -13,7 +13,7 @@ class GameExporter(
   RiotClient riot
 ) : IAsyncExporter {
 
-  private static readonly int LOG_SIZE = 20;
+  private static readonly int LOG_SIZE = 30;
   private static readonly List<string> EXPORT_LOG = new();
   private static readonly List<string> EXPORT_QUEUE = new();
 
@@ -91,7 +91,7 @@ class GameExporter(
 
 
   private async Task LookForNewGames(string puuid) {
-    var gameIDs = await _riot.GetGameIDsAsync(puuid, 3);
+    var gameIDs = await _riot.GetGameIDsAsync(puuid, 5);
 
     var newGameIDs = gameIDs
       .Where(e => !EXPORT_LOG.Contains(e) && !EXPORT_QUEUE.Contains(e));
