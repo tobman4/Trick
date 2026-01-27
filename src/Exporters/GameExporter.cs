@@ -4,12 +4,14 @@ using System.Text.Json.Nodes;
 using Trick.Options;
 using Trick.LOL;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Trick.Exportets;
 
 class GameExporter(
   IConfiguration conf,
   ILogger<GameExporter> logger,
+  IServiceProvider services,
   RiotClient riot
 ) : IAsyncExporter {
 
@@ -19,6 +21,7 @@ class GameExporter(
 
   private readonly IConfiguration _conf = conf;
   private readonly ILogger _logger = logger;
+  private readonly IServiceProvider _services = services;
   private readonly RiotClient _riot = riot;
 
   private readonly Counter _totalGamesCounter = Metrics.CreateCounter("games_count", "Total games observed", "riotID");
@@ -122,16 +125,17 @@ class GameExporter(
 
   private async Task ExportGame(string gameID, IEnumerable<string> playerIDs) {
     var gameData = await _riot.GetGameAsync(gameID);
-    
+
     var mapID = gameData["info"]!["mapId"]!.GetValue<int>();
     var gameMode = gameData["info"]!["gameMode"]!.GetValue<string>();
     var gameLength = gameData["info"]!["gameDuration"]!.GetValue<int>();
-      
+
     _gameLength.WithLabels(mapID.ToString(),gameMode).Observe(gameLength);
 
     ////////////
     // Player //
     ////////////
+    var playerExporters = _services.GetServices<IPlayerExporter>();
     var players = gameData?["info"]?["participants"]?.AsArray()
       ?? throw new Exception("Cant get players");
 
@@ -140,7 +144,9 @@ class GameExporter(
       if(!playerIDs.Contains(puuid))
           continue;
 
-      await ExportPlayer(player?.AsObject()!);
+      // await ExportPlayer(player?.AsObject()!);
+      Account acc = await _riot.GetAccountAsync(puuid!);
+      Task.WaitAll(playerExporters.Select(e => e.ExportAsync(acc, gameData, player!.AsObject())));
     }
   }
 
