@@ -29,22 +29,6 @@ class GameExporter(
   private readonly Counter _lostGamesCounter = Metrics.CreateCounter("games_lost", "Total games lost", "riotID");
   private readonly Counter _remageGamesCounter = Metrics.CreateCounter("games_remake", "Total games remade", "riotID");
  
-  private readonly Counter _bluePing = Metrics.CreateCounter("player_blue_ping", "How many blue pings used", "riotID");
-  private readonly Counter _cautionPing = Metrics.CreateCounter("player_caution_ping", "How many blue pings used", "riotID");
-
-  private readonly Counter _targetPing = Metrics.CreateCounter("player_target_ping", "How many blue pings used", "riotID");
-  private readonly Counter _defendPing = Metrics.CreateCounter("player_defend_ping", "How many blue pings used", "riotID");
-
-  private readonly Counter _dangerPing = Metrics.CreateCounter("player_danger_ping", "How many blue pings used", "riotID");
-  private readonly Counter _pushPing = Metrics.CreateCounter("player_push_ping", "How many blue pings used", "riotID");
-  private readonly Counter _missingPing = Metrics.CreateCounter("player_missing_ping", "How many blue pings used", "riotID");
-  private readonly Counter _omwPing = Metrics.CreateCounter("player_omw_ping", "How many blue pings used", "riotID");
-  private readonly Counter _allInPing = Metrics.CreateCounter("player_allIn_ping", "How many blue pings used", "riotID");
-  private readonly Counter _helpPing = Metrics.CreateCounter("player_help_ping", "How many blue pings used", "riotID");
-  private readonly Counter _visionPing = Metrics.CreateCounter("player_vision_ping", "How many blue pings used", "riotID");
-  private readonly Counter _enemyVisionPing = Metrics.CreateCounter("player_enemyVision_ping", "How many blue pings used", "riotID");
-  
-
 
   private static readonly Histogram _gameLength = Metrics.CreateHistogram("game_length", "Game length in seconds", new string[] { "mapId", "gameMode" }, new HistogramConfiguration {
     Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 45)
@@ -164,21 +148,6 @@ class GameExporter(
 
     var vision = playerData["visionScore"]?.GetValue<int>() ?? 0;
     _visionScore.WithLabels(acc.RiotID).Observe(vision);
-
-    _bluePing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("commandPings"));
-    _cautionPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("getBackPings"));
-                    
-    // _targetPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("")); // Not in data????
-    // _defendPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("")); // Not in data????
-                    
-    // _dangerPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("")); // ???????????????
-    _pushPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("pushPings"));
-    _missingPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("enemyMissingPings"));
-    _omwPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("onMyWayPings"));
-    _allInPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("allInPings"));
-    _helpPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("assistMePings"));
-    _visionPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("needVisionPings"));
-    _enemyVisionPing.WithLabels(acc.RiotID).Inc(playerData.Get<int>("enemyVisionPings"));
 
   }
 }
