@@ -23,11 +23,11 @@ class PlayerStatsExporter(
 
   private static Counter _goldEarned = Metrics.CreateCounter(
     "player_gold_earned", "Total games won on champ",
-    "riotID", "champion"
+    "riotID"
   );
 
   public Task ExportAsync(Account account, GameData data, JsonObject playerData) {
-    _logger.LogDebug("Export: {game}-{champ}");
+    _logger.LogDebug("Export: {game}-{champ}", data.GameID, account.RiotID);
 
     var win = playerData.Get<bool>("win");
     var champion = playerData.Get<string>("championName");
