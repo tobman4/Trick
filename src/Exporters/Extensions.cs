@@ -13,6 +13,9 @@ static class Extensions {
     builder.Services.AddHostedService<ExportController>();
     builder.Services.AddScoped<IAsyncExporter, GameExporter>();
 
+    builder.Services.AddScoped<IPlayerExporter, PlayerStatsExporter>();
+    builder.Services.AddScoped<IPlayerExporter, PingExport>();
+
     var players = builder.Configuration.GetSection("Players")
       .Get<IEnumerable<string>>() ?? new string[0];
 

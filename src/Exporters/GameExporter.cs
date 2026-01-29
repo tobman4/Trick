@@ -4,34 +4,29 @@ using System.Text.Json.Nodes;
 using Trick.Options;
 using Trick.LOL;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Trick.Exportets;
 
 class GameExporter(
   IConfiguration conf,
   ILogger<GameExporter> logger,
+  IServiceProvider services,
   RiotClient riot
 ) : IAsyncExporter {
 
-  private static readonly int LOG_SIZE = 20;
+  private static readonly int LOG_SIZE = 30;
   private static readonly List<string> EXPORT_LOG = new();
   private static readonly List<string> EXPORT_QUEUE = new();
 
   private readonly IConfiguration _conf = conf;
   private readonly ILogger _logger = logger;
+  private readonly IServiceProvider _services = services;
   private readonly RiotClient _riot = riot;
 
-  private readonly Counter _totalGamesCounter = Metrics.CreateCounter("games_count", "Total games observed", "riotID");
-  private readonly Counter _wonGamesCounter = Metrics.CreateCounter("games_won", "Total games won", "riotID");
-  private readonly Counter _lostGamesCounter = Metrics.CreateCounter("games_lost", "Total games lost", "riotID");
-  private readonly Counter _remageGamesCounter = Metrics.CreateCounter("games_remake", "Total games remade", "riotID");
-  
+
   private static readonly Histogram _gameLength = Metrics.CreateHistogram("game_length", "Game length in seconds", new string[] { "mapId", "gameMode" }, new HistogramConfiguration {
     Buckets = Histogram.LinearBuckets(start: 60, width: 60, count: 45)
-  });
-
-  private static readonly Histogram _visionScore = Metrics.CreateHistogram("player_vision", "Player vision score", new string[] {"riotId"}, new HistogramConfiguration {
-    Buckets = Histogram.LinearBuckets(start: 0, width: 10, count: 15)
   });
 
   private async Task<IEnumerable<Account>> GetTargetAccounts() {
@@ -91,7 +86,7 @@ class GameExporter(
 
 
   private async Task LookForNewGames(string puuid) {
-    var gameIDs = await _riot.GetGameIDsAsync(puuid, 3);
+    var gameIDs = await _riot.GetGameIDsAsync(puuid, 5);
 
     var newGameIDs = gameIDs
       .Where(e => !EXPORT_LOG.Contains(e) && !EXPORT_QUEUE.Contains(e));
@@ -105,16 +100,17 @@ class GameExporter(
 
   private async Task ExportGame(string gameID, IEnumerable<string> playerIDs) {
     var gameData = await _riot.GetGameAsync(gameID);
-    
+
     var mapID = gameData["info"]!["mapId"]!.GetValue<int>();
     var gameMode = gameData["info"]!["gameMode"]!.GetValue<string>();
     var gameLength = gameData["info"]!["gameDuration"]!.GetValue<int>();
-      
+
     _gameLength.WithLabels(mapID.ToString(),gameMode).Observe(gameLength);
 
     ////////////
     // Player //
     ////////////
+    var playerExporters = _services.GetServices<IPlayerExporter>();
     var players = gameData?["info"]?["participants"]?.AsArray()
       ?? throw new Exception("Cant get players");
 
@@ -123,7 +119,9 @@ class GameExporter(
       if(!playerIDs.Contains(puuid))
           continue;
 
-      await ExportPlayer(player?.AsObject()!);
+      // await ExportPlayer(player?.AsObject()!); // TODO: Dont use this shit
+      Account acc = await _riot.GetAccountAsync(puuid!);
+      Task.WaitAll(playerExporters.Select(e => e.ExportAsync(acc, gameData, player!.AsObject())));
     }
   }
 
@@ -132,15 +130,6 @@ class GameExporter(
 
     _logger.LogDebug("Found: {riotID}", acc.RiotID);
 
-    var didWin = playerData["win"]?.GetValue<bool>() ?? false;
-    if(didWin)
-      _wonGamesCounter.WithLabels(acc.RiotID).Inc();
-    else
-      _lostGamesCounter.WithLabels(acc.RiotID).Inc();
-    _totalGamesCounter.WithLabels(acc.RiotID).Inc();
-
-    var vision = playerData["visionScore"]?.GetValue<int>() ?? 0;
-    _visionScore.WithLabels(acc.RiotID).Observe(vision);
-
+    throw new NotImplementedException();
   }
 }
