@@ -50,7 +50,7 @@ class PlayerStatsExporter(
     var champion = playerData.Get<string>("championName");
     _champsGamesPlayed.WithLabels(account.RiotID, champion).Inc();
     if(didWin)
-      _champsGamesPlayed.WithLabels(account.RiotID, champion).Inc();
+      _champsGamesWon.WithLabels(account.RiotID, champion).Inc();
 
     // Small stats
     var gold = playerData.Get<int>("goldEarned");
