@@ -2,6 +2,19 @@
 
 Export acount stats for prometheus
 
+## About
+
+Trick is a .NET 10.0 application designed to export League of Legends account statistics to Prometheus. It utilizes the Riot Games API and Data Dragon to fetch real-time game data and player metrics.
+
+The application tracks various metrics including:
+- **Game Statistics:** Game length, win/loss records.
+- **Champion Mastery:** Mastery levels and scores for individual champions.
+- **Player Actions:** Detailed ping usage (blue, caution, push, missing, on-my-way, all-in, help, vision).
+- **Performance:** Gold earned and vision scores.
+
+**Configuration:**
+To run the application, you must provide a valid `RiotToken` in your configuration (e.g., via `appsettings.json` or environment variables).
+
 ## Metrics
 
 | Metric Name | Type | Description |
