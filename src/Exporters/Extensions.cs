@@ -10,6 +10,7 @@ namespace Trick.Exportets;
 static class Extensions {
 
   public static void AddExporters(this HostApplicationBuilder builder) {
+    builder.Services.Configure<ExportOptions>(builder.Configuration.GetSection("Export"));
     builder.Services.AddHostedService<ExportController>();
     builder.Services.AddScoped<IAsyncExporter, GameExporter>();
 

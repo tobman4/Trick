@@ -2,18 +2,21 @@ using Trick.Interfaces;
 using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Trick.Options;
 
 
 namespace Trick.Services;
 
 class ExportController(
   ILogger<ExportController> logger,
-  IServiceProvider services
+  IServiceProvider services,
+  IOptions<ExportOptions> options
 ) : BackgroundService {
 
   private readonly ILogger _logger = logger;
   private readonly IServiceProvider _services = services;
-  private readonly PeriodicTimer _timer = new PeriodicTimer(TimeSpan.FromSeconds(120));
+  private readonly PeriodicTimer _timer = new PeriodicTimer(TimeSpan.FromSeconds(options.Value.Interval));
 
   protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
     
