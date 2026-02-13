@@ -12,6 +12,7 @@ var builder = Host.CreateApplicationBuilder();
 builder.Logging.Setup();
 builder.Services.AddHostedService<MetricHost>();
 builder.AddExporters();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddHttpClient<RiotClient>(e => {
 	var token = builder.Configuration["RiotToken"];
